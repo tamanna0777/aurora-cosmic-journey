@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Telescope } from "lucide-react";
+import { Sparkles, Telescope, ChevronDown } from "lucide-react";
 import mercuryAurora from "@/assets/mercury-aurora.jpg";
 import venusAurora from "@/assets/venus-aurora.jpg";
 import earthAurora from "@/assets/earth-aurora.jpg";
@@ -9,7 +9,7 @@ import jupiterAurora from "@/assets/jupiter-aurora.jpg";
 import saturnAurora from "@/assets/saturn-aurora.jpg";
 import uranusAurora from "@/assets/uranus-aurora.jpg";
 import neptuneAurora from "@/assets/neptune-aurora.jpg";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const Planets = () => {
   const starsRef = useRef<HTMLDivElement>(null);
@@ -37,6 +37,8 @@ const Planets = () => {
     createStars();
   }, []);
 
+  const [expandedPlanet, setExpandedPlanet] = useState<string | null>(null);
+
   const planets = [
     {
       name: "Mercury",
@@ -45,6 +47,7 @@ const Planets = () => {
       auroraColor: "None",
       size: "Smallest planet",
       gradient: "from-slate-500 to-gray-600",
+      auroraInfo: "Mercury has no significant atmosphere and lacks a global magnetic field, making it unable to produce traditional auroras like those on Earth. Without atmospheric gases to interact with solar wind particles, Mercury remains a barren world without the spectacular light shows seen on other planets."
     },
     {
       name: "Venus",
@@ -53,6 +56,7 @@ const Planets = () => {
       auroraColor: "Faint UV glow",
       size: "Earth's twin",
       gradient: "from-orange-400 to-yellow-500",
+      auroraInfo: "Venus exhibits 'global, diffuse' auroras despite lacking a global magnetic field, unlike Earth's polar auroras. These auroras are faint green and blue glows on the nightside, caused by solar wind particles interacting with the Venusian atmosphere, creating localized magnetic fields and exciting oxygen atoms. The aurora is not visible from the surface due to Venus's dense atmospheric haze but can be observed from space."
     },
     {
       name: "Earth",
@@ -61,6 +65,7 @@ const Planets = () => {
       auroraColor: "Green, red, purple",
       size: "The Blue Marble",
       gradient: "from-blue-500 to-green-400",
+      auroraInfo: "Auroras are natural light displays in Earth's atmosphere, caused by charged particles from the Sun (solar wind) interacting with Earth's magnetic field and atmospheric gases. These particles are directed toward the poles, where they collide with atoms like oxygen and nitrogen, causing them to emit light in a dazzling show of colors, most commonly green and red. The Northern Lights are called Aurora Borealis and the Southern Lights are called Aurora Australis."
     },
     {
       name: "Mars",
@@ -69,6 +74,7 @@ const Planets = () => {
       auroraColor: "Patchy UV spots",
       size: "Half Earth's size",
       gradient: "from-red-600 to-orange-500",
+      auroraInfo: "Mars has auroras similar to Earth but different due to its lack of a global magnetic field; these auroras are caused by solar wind particles interacting with the Martian atmosphere, resulting in faint, diffuse glows rather than the structured displays seen on Earth. In a historic first, NASA's Perseverance rover captured the first visible-light images of a Martian aurora in 2024, revealing a soft green glow in the night sky caused by atomic oxygen."
     },
     {
       name: "Jupiter",
@@ -77,6 +83,7 @@ const Planets = () => {
       auroraColor: "Purple-blue UV",
       size: "Largest planet",
       gradient: "from-orange-300 to-amber-600",
+      auroraInfo: "Jupiter's auroras are massive, powerful light shows, hundreds of times brighter and more energetic than Earth's, caused by its immense magnetic field. The strong magnetic field, powered by Jupiter's metallic core, captures charged particles from the solar wind and its volcanic moon Io, accelerating them toward the planet's poles. These high-energy particles then collide with atmospheric gases, causing them to glow and create the continuous, dynamic aurora."
     },
     {
       name: "Saturn",
@@ -85,6 +92,7 @@ const Planets = () => {
       auroraColor: "Ultraviolet rings",
       size: "Ring system",
       gradient: "from-yellow-200 to-amber-400",
+      auroraInfo: "Auroras on Saturn are giant, natural light shows similar to Earth's Northern and Southern Lights, caused by charged particles from the solar wind colliding with gases in Saturn's atmosphere. These spectacular displays appear as vivid, towering curtains of light over the planet's poles. While Earth's auroras are green and red and visible in the sky, Saturn's auroras are primarily red and purple and can only be seen using ultraviolet-sensitive instruments from space."
     },
     {
       name: "Uranus",
@@ -93,6 +101,7 @@ const Planets = () => {
       auroraColor: "Faint blue glow",
       size: "Sideways rotation",
       gradient: "from-cyan-400 to-blue-500",
+      auroraInfo: "Uranus has auroras, visible in both ultraviolet and infrared light, caused by energetic particles interacting with its unique magnetic field and atmosphere. Unlike Earth's, Uranus's auroras are irregular and not centered at its poles because the planet's magnetic field is tilted and offset from its rotational axis. These auroras are studied to understand icy worlds and search for signs of life on exoplanets, with the infrared aurora providing insights into atmospheric temperature and composition."
     },
     {
       name: "Neptune",
@@ -101,6 +110,7 @@ const Planets = () => {
       auroraColor: "Dark blue flashes",
       size: "Windiest planet",
       gradient: "from-blue-600 to-indigo-700",
+      auroraInfo: "Auroras were recently captured on Neptune by the James Webb Space Telescope (JWST), confirming their presence and revealing unique characteristics, such as their location at mid-latitudes due to Neptune's extremely tilted magnetic field, rather than at the poles. These auroras, composed of the trihydrogen cation (H₃⁺) and appearing faint and dull in the planet's upper atmosphere, provide crucial information about Neptune's temperature and magnetosphere."
     },
   ];
 
@@ -154,7 +164,7 @@ const Planets = () => {
             {planets.map((planet, index) => (
               <Card
                 key={index}
-                className="group relative bg-card/50 backdrop-blur-sm border-border/50 overflow-hidden hover:border-primary/50 transition-all duration-500 hover:scale-105 hover:shadow-2xl"
+                className="group relative bg-card/50 backdrop-blur-sm border-border/50 overflow-hidden hover:border-primary/50 transition-all duration-500 hover:scale-105 hover:shadow-2xl flex flex-col"
                 style={{
                   animationDelay: `${index * 0.1}s`,
                 }}
@@ -166,7 +176,7 @@ const Planets = () => {
                 <div className="relative aspect-square overflow-hidden">
                   <img
                     src={planet.image}
-                    alt={`${planet.name}`}
+                    alt={`${planet.name} with aurora`}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                   />
                   <div className={`absolute inset-0 bg-gradient-to-br ${planet.gradient} opacity-20 group-hover:opacity-30 transition-opacity`} />
@@ -183,7 +193,7 @@ const Planets = () => {
                 </div>
 
                 {/* Planet Info */}
-                <div className="p-6 space-y-3">
+                <div className="p-6 space-y-3 flex-1 flex flex-col">
                   <div className="flex items-center gap-2 text-sm">
                     <span className="text-muted-foreground">{planet.fact}</span>
                   </div>
@@ -199,9 +209,36 @@ const Planets = () => {
                     </div>
                   </div>
 
+                  {/* Expandable Aurora Science Section */}
+                  <div className="mt-auto">
+                    <button
+                      onClick={() => setExpandedPlanet(expandedPlanet === planet.name ? null : planet.name)}
+                      className="w-full flex items-center justify-between p-3 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors border border-primary/30 group/btn"
+                    >
+                      <span className="text-sm font-semibold text-primary">Aurora Science</span>
+                      <ChevronDown 
+                        className={`w-4 h-4 text-primary transition-transform duration-300 ${
+                          expandedPlanet === planet.name ? 'rotate-180' : ''
+                        }`}
+                      />
+                    </button>
+                    
+                    <div 
+                      className={`overflow-hidden transition-all duration-300 ${
+                        expandedPlanet === planet.name ? 'max-h-96 mt-3' : 'max-h-0'
+                      }`}
+                    >
+                      <div className="p-4 rounded-lg bg-background/50 border border-border/50">
+                        <p className="text-sm text-muted-foreground leading-relaxed">
+                          {planet.auroraInfo}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
                   <Button 
                     variant="hero" 
-                    className="w-full group-hover:bg-primary/40 transition-all"
+                    className="w-full mt-3 group-hover:bg-primary/40 transition-all"
                   >
                     <Sparkles className="w-4 h-4" />
                     Explore Now
