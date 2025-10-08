@@ -160,7 +160,7 @@ const Planets = () => {
           </div>
 
           {/* Planet Cards Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 mb-16">
             {planets.map((planet, index) => (
               <Card
                 key={index}
@@ -185,25 +185,25 @@ const Planets = () => {
                   <div className="absolute inset-0 cosmic-glow opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   
                   {/* Planet Name Overlay */}
-                  <div className="absolute inset-0 flex items-end p-4 bg-gradient-to-t from-background/90 via-background/50 to-transparent">
-                    <h3 className="font-heading text-3xl font-bold text-gradient">
+                  <div className="absolute inset-0 flex items-end p-3 sm:p-4 bg-gradient-to-t from-background/90 via-background/50 to-transparent">
+                    <h3 className="font-heading text-2xl sm:text-3xl font-bold text-gradient">
                       {planet.name}
                     </h3>
                   </div>
                 </div>
 
                 {/* Planet Info */}
-                <div className="p-6 space-y-3 flex-1 flex flex-col">
-                  <div className="flex items-center gap-2 text-sm">
+                <div className="p-4 sm:p-6 space-y-3 flex-1 flex flex-col">
+                  <div className="flex items-center gap-2 text-xs sm:text-sm">
                     <span className="text-muted-foreground">{planet.fact}</span>
                   </div>
                   
                   <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between text-xs sm:text-sm">
                       <span className="text-primary font-semibold">Aurora:</span>
                       <span className="text-muted-foreground">{planet.auroraColor}</span>
                     </div>
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between text-xs sm:text-sm">
                       <span className="text-aurora-purple font-semibold">Size:</span>
                       <span className="text-muted-foreground">{planet.size}</span>
                     </div>
@@ -213,10 +213,10 @@ const Planets = () => {
                   <div className="mt-auto">
                     <button
                       onClick={() => setExpandedPlanet(expandedPlanet === planet.name ? null : planet.name)}
-                      className="w-full flex items-center justify-between p-3 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors border border-primary/30 group/btn"
+                      className="w-full flex items-center justify-between p-2 sm:p-3 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors border border-primary/30 group/btn"
                     >
-                      <span className="text-sm font-semibold text-primary">Aurora Science</span>
-                      <ChevronDown 
+                      <span className="text-xs sm:text-sm font-semibold text-primary">Aurora Science</span>
+                      <ChevronDown
                         className={`w-4 h-4 text-primary transition-transform duration-300 ${
                           expandedPlanet === planet.name ? 'rotate-180' : ''
                         }`}

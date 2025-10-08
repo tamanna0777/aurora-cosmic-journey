@@ -50,9 +50,9 @@ const Game = () => {
       if (!gameStarted || gameOver) return;
       
       if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") {
-        setPlayerX(prev => Math.max(0, prev - 5));
+        setPlayerX(prev => Math.max(5, prev - 3));
       } else if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") {
-        setPlayerX(prev => Math.min(90, prev + 5));
+        setPlayerX(prev => Math.min(85, prev + 3));
       }
     };
 
@@ -63,19 +63,22 @@ const Game = () => {
   useEffect(() => {
     if (!gameStarted || gameOver) return;
 
+    const difficultyMultiplier = Math.min(1 + score / 500, 2.5);
+    const spawnRate = Math.max(400, 800 - score / 2);
+
     const spawnParticle = () => {
       const newParticle: Particle = {
         id: Date.now() + Math.random(),
-        x: Math.random() * 90,
-        y: -5,
+        x: 5 + Math.random() * 80,
+        y: -8,
         color: auroraColors[Math.floor(Math.random() * auroraColors.length)],
-        speed: 1 + Math.random() * 2,
-        size: 3 + Math.random() * 2,
+        speed: (0.8 + Math.random() * 1.2) * difficultyMultiplier,
+        size: 2.5 + Math.random() * 1.5,
       };
       setParticles(prev => [...prev, newParticle]);
     };
 
-    const spawnInterval = setInterval(spawnParticle, 800);
+    const spawnInterval = setInterval(spawnParticle, spawnRate);
 
     const gameLoop = () => {
       setParticles(prev => {
@@ -85,13 +88,20 @@ const Game = () => {
             y: particle.y + particle.speed,
           }))
           .filter(particle => {
-            if (particle.y > 85 && particle.y < 95) {
-              if (Math.abs(particle.x - playerX) < 8) {
+            // Better collision detection
+            const paddleWidth = 10;
+            const particleRadius = particle.size / 2;
+            
+            if (particle.y >= 88 && particle.y <= 96) {
+              const distanceFromPaddle = Math.abs(particle.x - playerX);
+              if (distanceFromPaddle < paddleWidth + particleRadius) {
                 setScore(s => s + 10);
                 return false;
               }
             }
-            if (particle.y > 100) {
+            
+            // Game over if particle reaches bottom
+            if (particle.y > 102) {
               setGameOver(true);
               return false;
             }
@@ -109,7 +119,7 @@ const Game = () => {
       clearInterval(spawnInterval);
       if (gameLoopRef.current) cancelAnimationFrame(gameLoopRef.current);
     };
-  }, [gameStarted, gameOver, playerX]);
+  }, [gameStarted, gameOver, playerX, score]);
 
   useEffect(() => {
     if (gameOver && score > highScore) {
@@ -156,7 +166,7 @@ const Game = () => {
                 <div 
                   ref={canvasRef}
                   className="relative bg-gradient-to-b from-space-dark to-space-darker rounded-lg overflow-hidden border-2 border-primary/20"
-                  style={{ height: "500px" }}
+                  style={{ height: "clamp(400px, 50vh, 600px)" }}
                 >
                   {!gameStarted ? (
                     <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm">
@@ -197,13 +207,14 @@ const Game = () => {
                   {particles.map(particle => (
                     <div
                       key={particle.id}
-                      className={`absolute rounded-full ${particle.color} animate-pulse-glow transition-all duration-75`}
+                      className={`absolute rounded-full ${particle.color} animate-pulse-glow`}
                       style={{
                         left: `${particle.x}%`,
                         top: `${particle.y}%`,
                         width: `${particle.size}rem`,
                         height: `${particle.size}rem`,
-                        boxShadow: "0 0 20px currentColor",
+                        boxShadow: "0 0 25px currentColor",
+                        transition: "top 0.016s linear, left 0.016s linear",
                       }}
                     />
                   ))}
@@ -211,13 +222,13 @@ const Game = () => {
                   {/* Player */}
                   {gameStarted && !gameOver && (
                     <div
-                      className="absolute bottom-4 transition-all duration-100"
+                      className="absolute bottom-4 transition-all duration-75 ease-linear"
                       style={{
                         left: `${playerX}%`,
                         transform: "translateX(-50%)",
                       }}
                     >
-                      <div className="w-20 h-4 bg-gradient-to-r from-aurora-green via-aurora-purple to-aurora-pink rounded-full shadow-lg shadow-aurora-green/50 animate-pulse-glow" />
+                      <div className="w-16 sm:w-20 h-3 sm:h-4 bg-gradient-to-r from-aurora-green via-aurora-purple to-aurora-pink rounded-full shadow-lg shadow-aurora-green/50 animate-pulse-glow" />
                     </div>
                   )}
 
@@ -225,14 +236,16 @@ const Game = () => {
                   <div className="absolute inset-0 stars-container pointer-events-none" />
                 </div>
 
-                <div className="mt-4 flex items-center justify-center gap-4 text-sm text-muted-foreground">
+                <div className="mt-4 flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
                   <div className="flex items-center gap-2">
-                    <ArrowLeft className="w-4 h-4" />
-                    <span>Move Left</span>
+                    <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span className="hidden xs:inline">Arrow Left / </span>
+                    <span>A - Move Left</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <ArrowRight className="w-4 h-4" />
-                    <span>Move Right</span>
+                    <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span className="hidden xs:inline">Arrow Right / </span>
+                    <span>D - Move Right</span>
                   </div>
                 </div>
               </div>
@@ -317,11 +330,13 @@ const Game = () => {
               </ul>
             </Card>
 
-            <Card className="bg-gradient-to-br from-aurora-green/10 to-aurora-purple/10 border-aurora-green/20 p-6">
-              <h4 className="font-heading font-semibold mb-2 text-aurora-green">🌟 Pro Tip</h4>
-              <p className="text-sm text-muted-foreground">
-                Particles fall faster as your score increases! Stay focused and keep moving to catch them all.
-              </p>
+            <Card className="bg-gradient-to-br from-aurora-green/10 to-aurora-purple/10 border-aurora-green/20 p-4 sm:p-6">
+              <h4 className="font-heading font-semibold mb-2 text-aurora-green">🌟 Pro Tips</h4>
+              <div className="space-y-2 text-xs sm:text-sm text-muted-foreground">
+                <p>• Particles fall faster as your score increases!</p>
+                <p>• The spawn rate increases with difficulty</p>
+                <p>• Position yourself in advance to catch particles</p>
+              </div>
             </Card>
           </div>
         </div>

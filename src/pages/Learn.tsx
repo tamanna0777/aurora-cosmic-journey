@@ -138,7 +138,7 @@ const Learn = () => {
             <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-aurora-purple/10 to-aurora-pink/10 animate-aurora" />
             
             {/* Aurora Background Image */}
-            <div className="relative h-[600px] overflow-hidden">
+            <div className="relative h-[400px] sm:h-[500px] md:h-[600px] overflow-hidden">
               <img
                 src={auroraBackground}
                 alt="Breathtaking aurora borealis"
@@ -152,12 +152,12 @@ const Learn = () => {
               <div className="absolute inset-0 bg-gradient-to-b from-primary/20 via-transparent to-aurora-purple/20 animate-pulse-glow" />
               
               {/* Content Overlay */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8 z-10">
-                <Sparkles className="w-20 h-20 mb-6 text-primary animate-float" />
-                <h2 className="font-heading text-5xl md:text-6xl font-bold mb-4 text-gradient drop-shadow-lg">
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4 sm:p-8 z-10">
+                <Sparkles className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 mb-4 sm:mb-6 text-primary animate-float" />
+                <h2 className="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-3 sm:mb-4 text-gradient drop-shadow-lg">
                   Interactive 360° Aurora Experience
                 </h2>
-                <p className="text-xl text-foreground/90 mb-8 max-w-2xl drop-shadow-md">
+                <p className="text-base sm:text-lg md:text-xl text-foreground/90 mb-6 sm:mb-8 max-w-2xl drop-shadow-md px-4">
                   Immerse yourself in a fully interactive aurora visualization
                 </p>
                 <Button variant="hero" size="lg" className="group-hover:scale-110 transition-transform shadow-2xl">
