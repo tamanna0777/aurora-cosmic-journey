@@ -1,8 +1,122 @@
+import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Hand, Eye, Zap } from "lucide-react";
+import { ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Hand, Eye, Zap, Play, RotateCcw, Trophy } from "lucide-react";
+
+interface Particle {
+  id: number;
+  x: number;
+  y: number;
+  color: string;
+  speed: number;
+  size: number;
+}
 
 const Game = () => {
+  const [gameStarted, setGameStarted] = useState(false);
+  const [score, setScore] = useState(0);
+  const [highScore, setHighScore] = useState(0);
+  const [playerX, setPlayerX] = useState(50);
+  const [particles, setParticles] = useState<Particle[]>([]);
+  const [gameOver, setGameOver] = useState(false);
+  const gameLoopRef = useRef<number>();
+  const canvasRef = useRef<HTMLDivElement>(null);
+
+  const auroraColors = [
+    "bg-aurora-green",
+    "bg-aurora-purple", 
+    "bg-aurora-pink",
+    "bg-aurora-blue",
+  ];
+
+  const startGame = () => {
+    setGameStarted(true);
+    setGameOver(false);
+    setScore(0);
+    setPlayerX(50);
+    setParticles([]);
+  };
+
+  const resetGame = () => {
+    setGameStarted(false);
+    setGameOver(false);
+    setScore(0);
+    setPlayerX(50);
+    setParticles([]);
+  };
+
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (!gameStarted || gameOver) return;
+      
+      if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") {
+        setPlayerX(prev => Math.max(0, prev - 5));
+      } else if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") {
+        setPlayerX(prev => Math.min(90, prev + 5));
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, [gameStarted, gameOver]);
+
+  useEffect(() => {
+    if (!gameStarted || gameOver) return;
+
+    const spawnParticle = () => {
+      const newParticle: Particle = {
+        id: Date.now() + Math.random(),
+        x: Math.random() * 90,
+        y: -5,
+        color: auroraColors[Math.floor(Math.random() * auroraColors.length)],
+        speed: 1 + Math.random() * 2,
+        size: 3 + Math.random() * 2,
+      };
+      setParticles(prev => [...prev, newParticle]);
+    };
+
+    const spawnInterval = setInterval(spawnParticle, 800);
+
+    const gameLoop = () => {
+      setParticles(prev => {
+        const updated = prev
+          .map(particle => ({
+            ...particle,
+            y: particle.y + particle.speed,
+          }))
+          .filter(particle => {
+            if (particle.y > 85 && particle.y < 95) {
+              if (Math.abs(particle.x - playerX) < 8) {
+                setScore(s => s + 10);
+                return false;
+              }
+            }
+            if (particle.y > 100) {
+              setGameOver(true);
+              return false;
+            }
+            return true;
+          });
+        return updated;
+      });
+
+      gameLoopRef.current = requestAnimationFrame(gameLoop);
+    };
+
+    gameLoopRef.current = requestAnimationFrame(gameLoop);
+
+    return () => {
+      clearInterval(spawnInterval);
+      if (gameLoopRef.current) cancelAnimationFrame(gameLoopRef.current);
+    };
+  }, [gameStarted, gameOver, playerX]);
+
+  useEffect(() => {
+    if (gameOver && score > highScore) {
+      setHighScore(score);
+    }
+  }, [gameOver, score, highScore]);
+
   return (
     <div className="min-h-screen py-20 px-4">
       <div className="container mx-auto max-w-7xl">
@@ -16,30 +130,119 @@ const Game = () => {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Game Area */}
-          <div className="lg:col-span-2">
+          {/* Mini Game Area */}
+          <div className="lg:col-span-2 space-y-4">
             <Card className="bg-card border-border overflow-hidden">
-              <div className="aspect-video bg-gradient-to-br from-background via-card to-background flex items-center justify-center relative">
-                <div className="text-center p-8">
-                  <div className="w-24 h-24 mx-auto mb-6 bg-primary/20 rounded-full flex items-center justify-center animate-pulse-glow">
-                    <Zap className="w-12 h-12 text-primary" />
+              <div className="bg-gradient-to-b from-background via-card to-background p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="font-heading text-2xl font-bold flex items-center gap-2">
+                      <Zap className="w-6 h-6 text-aurora-green" />
+                      Aurora Catcher
+                    </h3>
+                    <p className="text-sm text-muted-foreground">Catch falling aurora particles!</p>
                   </div>
-                  <p className="text-2xl font-heading mb-4">Unity WebGL Game</p>
-                  <p className="text-muted-foreground mb-6">
-                    The full Aurora Nexus game will be embedded here using Unity WebGL.
-                  </p>
-                  <Button variant="hero" size="lg">
-                    Launch Full Experience
-                  </Button>
+                  <div className="text-right">
+                    <div className="flex items-center gap-2 text-2xl font-bold text-primary">
+                      <Trophy className="w-5 h-5" />
+                      {score}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      High Score: {highScore}
+                    </div>
+                  </div>
+                </div>
+
+                <div 
+                  ref={canvasRef}
+                  className="relative bg-gradient-to-b from-space-dark to-space-darker rounded-lg overflow-hidden border-2 border-primary/20"
+                  style={{ height: "500px" }}
+                >
+                  {!gameStarted ? (
+                    <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm">
+                      <div className="text-center space-y-4">
+                        <div className="w-20 h-20 mx-auto bg-aurora-green/20 rounded-full flex items-center justify-center animate-pulse-glow">
+                          <Play className="w-10 h-10 text-aurora-green" />
+                        </div>
+                        <h4 className="font-heading text-2xl font-bold">Ready to Play?</h4>
+                        <p className="text-muted-foreground max-w-sm">
+                          Use Arrow Keys or A/D to move left and right. Catch the falling aurora particles!
+                        </p>
+                        <Button onClick={startGame} variant="hero" size="lg" className="gap-2">
+                          <Play className="w-5 h-5" />
+                          Start Game
+                        </Button>
+                      </div>
+                    </div>
+                  ) : gameOver ? (
+                    <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+                      <div className="text-center space-y-4">
+                        <div className="w-20 h-20 mx-auto bg-aurora-purple/20 rounded-full flex items-center justify-center">
+                          <Trophy className="w-10 h-10 text-aurora-purple" />
+                        </div>
+                        <h4 className="font-heading text-2xl font-bold">Game Over!</h4>
+                        <p className="text-xl">Score: <span className="text-primary font-bold">{score}</span></p>
+                        {score === highScore && score > 0 && (
+                          <p className="text-aurora-green font-semibold">🎉 New High Score!</p>
+                        )}
+                        <Button onClick={resetGame} variant="hero" size="lg" className="gap-2">
+                          <RotateCcw className="w-5 h-5" />
+                          Play Again
+                        </Button>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {/* Particles */}
+                  {particles.map(particle => (
+                    <div
+                      key={particle.id}
+                      className={`absolute rounded-full ${particle.color} animate-pulse-glow transition-all duration-75`}
+                      style={{
+                        left: `${particle.x}%`,
+                        top: `${particle.y}%`,
+                        width: `${particle.size}rem`,
+                        height: `${particle.size}rem`,
+                        boxShadow: "0 0 20px currentColor",
+                      }}
+                    />
+                  ))}
+
+                  {/* Player */}
+                  {gameStarted && !gameOver && (
+                    <div
+                      className="absolute bottom-4 transition-all duration-100"
+                      style={{
+                        left: `${playerX}%`,
+                        transform: "translateX(-50%)",
+                      }}
+                    >
+                      <div className="w-20 h-4 bg-gradient-to-r from-aurora-green via-aurora-purple to-aurora-pink rounded-full shadow-lg shadow-aurora-green/50 animate-pulse-glow" />
+                    </div>
+                  )}
+
+                  {/* Twinkling stars background */}
+                  <div className="absolute inset-0 stars-container pointer-events-none" />
+                </div>
+
+                <div className="mt-4 flex items-center justify-center gap-4 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <ArrowLeft className="w-4 h-4" />
+                    <span>Move Left</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <ArrowRight className="w-4 h-4" />
+                    <span>Move Right</span>
+                  </div>
                 </div>
               </div>
             </Card>
 
-            {/* Game Description */}
-            <Card className="mt-4 bg-card border-border p-6">
-              <h3 className="font-heading text-xl font-semibold mb-3">About the Game</h3>
+            {/* Full Game Description */}
+            <Card className="bg-card border-border p-6">
+              <h3 className="font-heading text-xl font-semibold mb-3">About Aurora Nexus</h3>
               <p className="text-muted-foreground mb-4">
-                Experience the Aurora Nexus journey starting from your location on Earth. Fly to the North or South Pole, 
+                Experience the full Aurora Nexus journey starting from your location on Earth. Fly to the North or South Pole, 
                 set up camp by a frozen river, and witness the breathtaking northern lights. Learn how auroras form through 
                 interactive storytelling, then launch rockets to explore auroras on distant planets like Jupiter, Saturn, and Neptune.
               </p>
@@ -51,54 +254,35 @@ const Game = () => {
             </Card>
           </div>
 
-          {/* Controls Panel */}
+          {/* Info Panel */}
           <div className="space-y-4">
             <Card className="bg-card border-border p-6">
               <h3 className="font-heading text-xl font-semibold mb-4 flex items-center gap-2">
                 <Hand className="w-5 h-5 text-primary" />
-                Game Controls
+                How to Play
               </h3>
               
               <div className="space-y-4">
-                <div>
-                  <p className="text-sm font-semibold mb-2">Movement</p>
-                  <div className="grid grid-cols-3 gap-2 w-32 mx-auto mb-2">
-                    <div />
-                    <Button variant="outline" size="icon" className="pointer-events-none">
-                      <ArrowUp className="w-4 h-4" />
-                    </Button>
-                    <div />
-                    <Button variant="outline" size="icon" className="pointer-events-none">
-                      <ArrowLeft className="w-4 h-4" />
-                    </Button>
-                    <Button variant="outline" size="icon" className="pointer-events-none">
-                      <ArrowDown className="w-4 h-4" />
-                    </Button>
-                    <Button variant="outline" size="icon" className="pointer-events-none">
-                      <ArrowRight className="w-4 h-4" />
-                    </Button>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-start gap-2">
+                    <span className="text-aurora-green mt-1">1.</span>
+                    <span>Click "Start Game" to begin</span>
                   </div>
-                  <p className="text-xs text-muted-foreground text-center">Arrow Keys / WASD</p>
-                </div>
-
-                <div className="border-t border-border pt-4">
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Interact</span>
-                      <span className="font-mono bg-muted px-2 py-0.5 rounded">E</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Jump</span>
-                      <span className="font-mono bg-muted px-2 py-0.5 rounded">Space</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Rotate Camera</span>
-                      <span className="font-mono bg-muted px-2 py-0.5 rounded">Mouse</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Zoom</span>
-                      <span className="font-mono bg-muted px-2 py-0.5 rounded">Scroll</span>
-                    </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-aurora-purple mt-1">2.</span>
+                    <span>Use Arrow Keys or A/D to move left and right</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-aurora-pink mt-1">3.</span>
+                    <span>Catch falling aurora particles with your paddle</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-aurora-blue mt-1">4.</span>
+                    <span>Don't let any particles reach the bottom!</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-primary mt-1">5.</span>
+                    <span>Each particle = 10 points. Beat your high score!</span>
                   </div>
                 </div>
               </div>
@@ -107,7 +291,7 @@ const Game = () => {
             <Card className="bg-card border-border p-6">
               <h3 className="font-heading text-xl font-semibold mb-4 flex items-center gap-2">
                 <Eye className="w-5 h-5 text-aurora-purple" />
-                Game Features
+                Full Game Features
               </h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li className="flex items-start gap-2">
@@ -131,6 +315,13 @@ const Game = () => {
                   <span>Real-time space weather data</span>
                 </li>
               </ul>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-aurora-green/10 to-aurora-purple/10 border-aurora-green/20 p-6">
+              <h4 className="font-heading font-semibold mb-2 text-aurora-green">🌟 Pro Tip</h4>
+              <p className="text-sm text-muted-foreground">
+                Particles fall faster as your score increases! Stay focused and keep moving to catch them all.
+              </p>
             </Card>
           </div>
         </div>
